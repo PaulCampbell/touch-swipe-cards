@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rollup --sourcemap -c ./rollup.config.js",
-    "watch": "rollup -w --sourcemap -c ./rollup.config.js"
+    "watch": "rollup -w --sourcemap -c ./rollup.config.js",
+    "serve": "static-server"
   },
   "author": "",
   "license": "ISC",
