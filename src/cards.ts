@@ -38,6 +38,12 @@ class TouchDragCards extends LitElement {
   activeCardLeftTheStage = false;
 
   @property()
+  leftDropActive = false;
+
+  @property()
+  rightDropActive = false;
+
+  @property()
   activeCardPosition = { x: 0, y: 0, direction: Direction.None };
 
   @property({ type: Number })
@@ -95,6 +101,9 @@ class TouchDragCards extends LitElement {
       border: solid 1px #dedede;
     }
 
+    .zone-active {
+      opacity: 0.5 !important;
+    }
     #drop-zones li {
       height: 100%;
       display: block;
@@ -102,7 +111,9 @@ class TouchDragCards extends LitElement {
       position: absolute;
       top: 0;
       z-index: -1;
+      opacity: 0;
     }
+
     .left-drop-zone {
       background-color: red;
       left: 0;
@@ -112,7 +123,6 @@ class TouchDragCards extends LitElement {
       position: absolute;
       right: 0px;
     }
-
     .no-cards-left {
       border: 0px;
       background-color: rgba(0, 0, 0, 0);
@@ -126,8 +136,16 @@ class TouchDragCards extends LitElement {
   render() {
     return html`
       <ul id="drop-zones">
-        <li class="left-drop-zone"></li>
-        <li class="right-drop-zone"></li>
+        <li
+          class=${this.leftDropActive
+            ? 'left-drop-zone zone-active'
+            : 'left-drop-zone'}
+        ></li>
+        <li
+          class=${this.rightDropActive
+            ? 'right-drop-zone zone-active'
+            : 'right-drop-zone'}
+        ></li>
       </ul>
 
       <ol id="cards">
@@ -185,6 +203,16 @@ class TouchDragCards extends LitElement {
   }
 
   private _moveCard(x: number, y: number) {
+    if (x < 80) {
+      this.leftDropActive = true;
+    } else {
+      this.leftDropActive = false;
+    }
+    if (x > this.pageWidth - 80) {
+      this.rightDropActive = true;
+    } else {
+      this.rightDropActive = false;
+    }
     const cardsList = <HTMLLIElement>this.shadowRoot.getElementById('cards');
     const activeCard = <HTMLLIElement>this.shadowRoot.querySelector('.active');
     const elementWidth = activeCard.offsetWidth;
@@ -264,5 +292,7 @@ class TouchDragCards extends LitElement {
     }
 
     this.activeCardPosition = { x: 0, y: 0, direction: Direction.None };
+    this.rightDropActive = false;
+    this.leftDropActive = false;
   }
 }
