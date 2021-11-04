@@ -9,17 +9,36 @@ enum Direction {
 
 @customElement('touch-drag-cards')
 class TouchDragCards extends LitElement {
-  @property()
-  cards = ['card 1', 'card 2', 'card 3'];
+  @property({ type: Function })
+  dropLeft: Function;
 
-  @property()
-  activeCard = this.cards[0];
+  @property({ type: Function })
+  dropRight: Function;
+
+  @property({ type: Array })
+  _cards: Array<string> = [];
+
+  set cards(value) {
+    const oldValue = this._cards;
+    this._cards = value;
+    this.activeCard = this._cards[0];
+    this.requestUpdate('cards', oldValue);
+  } 
+
+  get cards() { return this._cards; }
+
+  @property({ type: String })
+  activeCard: string;
 
   @property()
   dragActive = false;
 
   @property()
   activeCardPosition = { x: 0, y: 0, direction: Direction.None };
+
+  constructor() {
+    super();
+  }
 
   static styles = css`
     ol {
@@ -43,8 +62,13 @@ class TouchDragCards extends LitElement {
       color: white;
       text-align: center;
     }
+    ol li h1 {
+      color: black;
+      font-size: 1em;
+    }
+
     ol li.active {
-      z-index: 1;
+      z-index: 100;
       padding: 0;
       margin: 0;
       border-color: #999;
@@ -59,12 +83,44 @@ class TouchDragCards extends LitElement {
       transition: 0.1s ease-in-out;
       border: solid 1px #dedede;
     }
+
+    #drop-zones li {
+      height: 100%;
+      display: block;
+      width: 50px;
+      position: absolute;
+      top: 0;
+      z-index: -1;
+    }
+    .left-drop-zone {
+      background-color: red;
+      left: 0;
+    }
+    .right-drop-zone {
+      background-color: green;
+      position: absolute;
+      right: 0px;
+    }
+
+    .no-cards-left {
+      border:0px;
+      background-color: rgba(0,0,0,0);
+    }
+    .no-cards-left h1 {
+      color: #666;
+      font-size: 0.5em;
+    }
   `;
 
   render() {
     return html`
       <p>Draggable Cards</p>
-      <ol>
+      <ul id="drop-zones">
+        <li class="left-drop-zone">left</li>
+        <li class="right-drop-zone">right</li>
+      </ul>
+
+      <ol id="cards">
         ${this.cards.map(
           (item, index) =>
             html`
@@ -73,17 +129,21 @@ class TouchDragCards extends LitElement {
                 class="${this.activeCard === item && this.dragActive
                   ? 'active'
                   : 'animate-drop'}"
+                @mousedown="${this._handleTouchStart}"
+                @mouseup="${this._handleMouseDrop}"
+                @mousemove="${this._handleMouseMove}"
                 @touchmove="${this._handleTouchMove}"
                 @touchstart="${this._handleTouchStart}"
                 @touchend="${this._handleTouchEnd}"
                 style="${this.activeCard === item && this.dragActive
                   ? this._getCardPositionStyle()
-                  : ''}"
+                  : 'z-index:' + (99 - index)}"
               >
-                ${item}
+                <h1>${item}</h1>
               </li>
             `,
         )}
+        <li class="no-cards-left"><h1>No cards left</h1></li>
       </ol>
     `;
   }
@@ -96,6 +156,7 @@ class TouchDragCards extends LitElement {
 
     if (this.activeCardPosition.direction === Direction.Right)
       rotation = rotationAmount;
+     
     return `
       left:${this.activeCardPosition.x}px;
       top:${this.activeCardPosition.y}px;
@@ -107,29 +168,64 @@ class TouchDragCards extends LitElement {
     this.dragActive = true;
   }
 
-  private _handleTouchMove(e: TouchEvent) {
-    e.preventDefault();
-
-    const touch = e.targetTouches[0];
-    const target = <HTMLLIElement>touch.target;
-    const elementWidth = target.offsetWidth;
-    const elementHeight = target.offsetHeight;
-    const xposition = touch.screenX - elementWidth / 2 - 80;
+  private _moveCard(x: number, y: number) {
+    const cardsList = <HTMLLIElement>this.shadowRoot.getElementById('cards');
+    const activeCard = <HTMLLIElement>this.shadowRoot.querySelector('.active');
+    const elementWidth = activeCard.offsetWidth;
+    const elementHeight = activeCard.offsetHeight;
+    const xPosition = x-  (elementWidth / 2) - cardsList.offsetLeft;
+    const yPosition =  y- (elementHeight /2)  - cardsList.offsetTop;
 
     let direction = Direction.None;
-    if (xposition > this.activeCardPosition.x) {
+    if (xPosition > this.activeCardPosition.x) {
       direction = Direction.Right;
     } else {
       direction = Direction.Left;
     }
     this.activeCardPosition = {
-      x: xposition,
-      y: touch.clientY - elementHeight / 2 - 80,
+      x: xPosition,
+      y: yPosition,
       direction: direction,
     };
   }
+  
+  private _handleMouseMove(e: MouseEvent) {
+    e.preventDefault();
+    if(this.dragActive) {
+      this._moveCard(e.clientX, e.clientY);
+    }
+  }
+ 
+  private _handleTouchMove(e: TouchEvent) {
+    e.preventDefault();
+    const touch = e.targetTouches[0];
+    this._moveCard(touch.clientX, touch.clientY);
+  }
+
+  private _handleMouseDrop(e: MouseEvent) {
+    e.preventDefault();
+    const dropPosition = e.clientX
+    this._dropCard(dropPosition);
+  }
 
   private _handleTouchEnd(e: TouchEvent) {
+    e.preventDefault();
+    const dropPosition = e.changedTouches[0].clientX;
+    this._dropCard(dropPosition);
+  }
+
+  private _dropCard(xPosition: number) {
+    if(xPosition < 80) {
+      dropLeft(this.activeCard);
+      this.cards = this.cards.filter(card => card !== this.activeCard);
+      this.activeCard = this.cards[0];
+    }
+    if(xPosition > (window.innerWidth - 80)) {
+      dropRight(this.activeCard);
+      this.cards = this.cards.filter(card => card !== this.activeCard);
+      this.activeCard = this.cards[0];
+    }
+    
     this.dragActive = false;
     this.activeCardPosition = { x: 0, y: 0, direction: Direction.None };
   }

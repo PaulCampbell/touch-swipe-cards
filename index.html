@@ -12,8 +12,37 @@
     </style>
   </head>
   <body>
-    <touch-drag-cards>
+    <script>
+      const droppedLeft = []
+      const droppedRight = []
+
+      function dropLeft(item) {
+        droppedLeft.push(item)
+        console.log(droppedLeft)
+        const dragCards = document.getElementsByTagName('touch-drag-cards')[0]
+        console.log(`${dragCards.cards.length - 1} cards left`)
+      }
+
+      function dropRight(item) {
+        droppedRight.push(item)
+        console.log(droppedRight)
+        const dragCards = document.getElementsByTagName('touch-drag-cards')[0]
+        console.log(`${dragCards.cards.length - 1} cards left`)
+      }
+
+      function getCards() {
+        return ['card 1', 'card 2', 'card 3']
+      }
+
       
+      window.onload = function() {
+        const dragCards = document.getElementsByTagName('touch-drag-cards')[0]
+        dragCards.cards = ['card 1', 'card 2', 'card 3', 'card 4']
+      };
+      
+
+    </script>
+    <touch-drag-cards dropLeft="dropLeft" dropRight="dropRight">
     </touch-drag-cards>
   </body>
 </html>
