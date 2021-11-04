@@ -7,9 +7,9 @@ enum Direction {
   Right = 2,
 }
 
-@customElement('touch-drag-cards')
+@customElement('touch-swipe-cards')
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-class TouchDragCards extends LitElement {
+class TouchSwipeCards extends LitElement {
   @property({ type: Function })
   dropLeft: (card: String) => void;
 
