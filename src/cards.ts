@@ -22,16 +22,20 @@ class TouchDragCards extends LitElement {
     const oldValue = this._cards;
     this._cards = value;
     this.activeCard = this._cards[0];
-    this.requestUpdate('cards', oldValue);
-  } 
+  }
 
-  get cards() { return this._cards; }
+  get cards() {
+    return this._cards;
+  }
 
   @property({ type: String })
   activeCard: string;
 
   @property()
   dragActive = false;
+
+  @property()
+  activeCardLeftTheStage = false;
 
   @property()
   activeCardPosition = { x: 0, y: 0, direction: Direction.None };
@@ -103,8 +107,8 @@ class TouchDragCards extends LitElement {
     }
 
     .no-cards-left {
-      border:0px;
-      background-color: rgba(0,0,0,0);
+      border: 0px;
+      background-color: rgba(0, 0, 0, 0);
     }
     .no-cards-left h1 {
       color: #666;
@@ -114,7 +118,6 @@ class TouchDragCards extends LitElement {
 
   render() {
     return html`
-      <p>Draggable Cards</p>
       <ul id="drop-zones">
         <li class="left-drop-zone">left</li>
         <li class="right-drop-zone">right</li>
@@ -135,9 +138,7 @@ class TouchDragCards extends LitElement {
                 @touchmove="${this._handleTouchMove}"
                 @touchstart="${this._handleTouchStart}"
                 @touchend="${this._handleTouchEnd}"
-                style="${this.activeCard === item && this.dragActive
-                  ? this._getCardPositionStyle()
-                  : 'z-index:' + (99 - index)}"
+                style="${this._getCardPositionStyle(item, index)}"
               >
                 <h1>${item}</h1>
               </li>
@@ -148,20 +149,27 @@ class TouchDragCards extends LitElement {
     `;
   }
 
-  private _getCardPositionStyle() {
-    let rotation = 0;
-    const rotationAmount = 2;
-    if (this.activeCardPosition.direction === Direction.Left)
-      rotation = -rotationAmount;
+  private _getCardPositionStyle(item: string, index: number) {
+    if (this.activeCard === item) {
+      if (this.activeCardLeftTheStage) {
+        return `display:none;`;
+      }
+      let rotation = 0;
+      const rotationAmount = 2;
+      if (this.activeCardPosition.direction === Direction.Left)
+        rotation = -rotationAmount;
 
-    if (this.activeCardPosition.direction === Direction.Right)
-      rotation = rotationAmount;
-     
-    return `
-      left:${this.activeCardPosition.x}px;
-      top:${this.activeCardPosition.y}px;
-      transform:rotate(${rotation}deg);
-    `;
+      if (this.activeCardPosition.direction === Direction.Right)
+        rotation = rotationAmount;
+
+      return `
+        left:${this.activeCardPosition.x}px;
+        top:${this.activeCardPosition.y}px;
+        transform:rotate(${rotation}deg);
+        z-index: ${99 - index}
+      `;
+    }
+    return 'z-index:' + (99 - index);
   }
 
   private _handleTouchStart(e: Event) {
@@ -173,8 +181,8 @@ class TouchDragCards extends LitElement {
     const activeCard = <HTMLLIElement>this.shadowRoot.querySelector('.active');
     const elementWidth = activeCard.offsetWidth;
     const elementHeight = activeCard.offsetHeight;
-    const xPosition = x-  (elementWidth / 2) - cardsList.offsetLeft;
-    const yPosition =  y- (elementHeight /2)  - cardsList.offsetTop;
+    const xPosition = x - elementWidth / 2 - cardsList.offsetLeft;
+    const yPosition = y - elementHeight / 2 - cardsList.offsetTop;
 
     let direction = Direction.None;
     if (xPosition > this.activeCardPosition.x) {
@@ -188,14 +196,14 @@ class TouchDragCards extends LitElement {
       direction: direction,
     };
   }
-  
+
   private _handleMouseMove(e: MouseEvent) {
     e.preventDefault();
-    if(this.dragActive) {
+    if (this.dragActive) {
       this._moveCard(e.clientX, e.clientY);
     }
   }
- 
+
   private _handleTouchMove(e: TouchEvent) {
     e.preventDefault();
     const touch = e.targetTouches[0];
@@ -204,7 +212,7 @@ class TouchDragCards extends LitElement {
 
   private _handleMouseDrop(e: MouseEvent) {
     e.preventDefault();
-    const dropPosition = e.clientX
+    const dropPosition = e.clientX;
     this._dropCard(dropPosition);
   }
 
@@ -214,19 +222,31 @@ class TouchDragCards extends LitElement {
     this._dropCard(dropPosition);
   }
 
-  private _dropCard(xPosition: number) {
-    if(xPosition < 80) {
-      dropLeft(this.activeCard);
-      this.cards = this.cards.filter(card => card !== this.activeCard);
-      this.activeCard = this.cards[0];
+  private async _dropCard(xPosition: number) {
+    let throwAway = false;
+    if (xPosition < 80) {
+      this.dropLeft(this.activeCard);
+      this.activeCardPosition = { x: -300, y: 0, direction: Direction.None };
+      throwAway = true;
     }
-    if(xPosition > (window.innerWidth - 80)) {
-      dropRight(this.activeCard);
-      this.cards = this.cards.filter(card => card !== this.activeCard);
-      this.activeCard = this.cards[0];
+
+    if (xPosition > window.innerWidth - 80) {
+      this.dropRight(this.activeCard);
+      this.activeCardPosition = { x: 300, y: 0, direction: Direction.None };
+      throwAway = true;
     }
-    
+
     this.dragActive = false;
+
+    if (throwAway) {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      this.activeCardLeftTheStage = true;
+      this.activeCardPosition = { x: 0, y: 0, direction: Direction.None };
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      this.activeCardLeftTheStage = false;
+      this.cards = this.cards.filter((card) => card !== this.activeCard);
+    }
+
     this.activeCardPosition = { x: 0, y: 0, direction: Direction.None };
   }
 }
