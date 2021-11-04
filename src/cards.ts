@@ -1,8 +1,14 @@
 import {LitElement, html, css} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 
-@customElement('my-cards')
-class Cards extends LitElement {
+enum Direction {
+  None= 0,
+  Left = 1,
+  Right = 2,
+}
+
+@customElement('touch-drag-cards')
+class TouchDragCards extends LitElement {
 
   @property()
   cards = ['card 1', 'card 2', 'card 3'];
@@ -14,7 +20,7 @@ class Cards extends LitElement {
   dragActive = false;
 
   @property()
-  activeCardPosition = {}
+  activeCardPosition = { x: 0, y: 0, direction: Direction.None }
 
   static styles = css`
   ol {
@@ -66,14 +72,15 @@ class Cards extends LitElement {
     <p>Draggable Cards</p>
     <ol>
         ${this.cards.map(
-          (item) =>
+          (item, index) =>
             html`
               <li 
+                id="card-${index}"
                 class="${this.activeCard === item && this.dragActive ? 'active' : ''}"
                 @touchmove="${this._handleTouchMove}" 
                 @touchstart="${this._handleTouchStart}"
                 @touchend="${this._handleTouchEnd}"
-                style="${this.activeCard === item && this.dragActive ? 'position: absolute; left:' + this.activeCardPosition.x + 'px' : ''}">
+                style="${this.activeCard === item && this.dragActive ? this._getCardPositionStyle() : ''}">
                   ${item}
                 </li>
             `
@@ -81,19 +88,43 @@ class Cards extends LitElement {
       </ol>
     `;
   }
+
+  private _getCardPositionStyle() {
+    let rotation = 0;
+    const rotationAmount = 4
+    if(this.activeCardPosition.direction === Direction.Left)
+     rotation = -rotationAmount
+
+    if(this.activeCardPosition.direction === Direction.Right)
+     rotation = rotationAmount
+    
+     return 'left:' + this.activeCardPosition.x + 'px; top: ' + this.activeCardPosition.y + 'px;  transform:rotate('+ rotation + 'deg);'
+  }
+
   private _handleTouchStart(e: Event) { 
     this.dragActive = true;
-    console.log(e) 
   }
 
   private _handleTouchMove(e: TouchEvent) {
+    e.preventDefault()
     const touch = e.targetTouches[0]
-    this.activeCardPosition = { x: touch.clientX, y: touch.clientY }
+    const target = <HTMLLIElement>touch.target
+    const elementWidth = target.offsetWidth
+    const elementHeight = target.offsetHeight
+    const xposition = touch.screenX - (elementWidth / 2) - 80
+    let direction = Direction.None
+    if(xposition > this.activeCardPosition.x) {
+      direction = Direction.Right
+    } else {
+      direction = Direction.Left
+    }
+    this.activeCardPosition = { x: xposition, y: touch.clientY - (elementHeight / 2) - 80, direction: direction }
   }
 
   private _handleTouchEnd(e: TouchEvent) {
     this.dragActive = false;
     const touch = e.touches[0]
     console.log(touch);
+    this.activeCardPosition = { x: 0, y: 0, direction: Direction.None }
   }
 }
