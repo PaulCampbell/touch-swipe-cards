@@ -8,18 +8,18 @@ enum Direction {
 }
 
 @customElement('touch-drag-cards')
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 class TouchDragCards extends LitElement {
   @property({ type: Function })
-  dropLeft: Function;
+  dropLeft: () => void;
 
   @property({ type: Function })
-  dropRight: Function;
+  dropRight: () => void;
 
   @property({ type: Array })
   _cards: Array<string> = [];
 
   set cards(value) {
-    const oldValue = this._cards;
     this._cards = value;
     this.activeCard = this._cards[0];
   }
@@ -173,6 +173,7 @@ class TouchDragCards extends LitElement {
   }
 
   private _handleTouchStart(e: Event) {
+    e.preventDefault();
     this.dragActive = true;
   }
 
