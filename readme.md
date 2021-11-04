@@ -2,6 +2,10 @@
 
 It's a Tinder cards type ui thing, built as a web component using Lit
 
+It will work on a big screen, but it's intended for phone use really... that's where this sort of thing works better I reckon.
+
+[Check out the demo](https://paulcampbell.github.io/touch-swipe-cards/)
+
 ## Development
 
 ### Build:
