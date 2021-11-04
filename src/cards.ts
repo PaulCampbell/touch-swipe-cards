@@ -11,10 +11,10 @@ enum Direction {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 class TouchDragCards extends LitElement {
   @property({ type: Function })
-  dropLeft: () => void;
+  dropLeft: (card: String) => void;
 
   @property({ type: Function })
-  dropRight: () => void;
+  dropRight: (card: String) => void;
 
   @property({ type: Array })
   _cards: Array<string> = [];
@@ -40,6 +40,13 @@ class TouchDragCards extends LitElement {
   @property()
   activeCardPosition = { x: 0, y: 0, direction: Direction.None };
 
+  @property({ type: Number })
+  pageWidth = Math.max(
+    document.documentElement.scrollWidth,
+    document.documentElement.offsetWidth,
+    document.documentElement.clientWidth,
+  );
+
   constructor() {
     super();
   }
@@ -47,7 +54,7 @@ class TouchDragCards extends LitElement {
   static styles = css`
     ol {
       padding: 0;
-      margin: 0;
+      margin: auto;
       -webkit-user-select: none;
       position: relative;
       width: 300px;
@@ -119,8 +126,8 @@ class TouchDragCards extends LitElement {
   render() {
     return html`
       <ul id="drop-zones">
-        <li class="left-drop-zone">left</li>
-        <li class="right-drop-zone">right</li>
+        <li class="left-drop-zone"></li>
+        <li class="right-drop-zone"></li>
       </ul>
 
       <ol id="cards">
@@ -227,13 +234,21 @@ class TouchDragCards extends LitElement {
     let throwAway = false;
     if (xPosition < 80) {
       this.dropLeft(this.activeCard);
-      this.activeCardPosition = { x: -300, y: 0, direction: Direction.None };
+      this.activeCardPosition = {
+        x: -(this.pageWidth / 2) - 100,
+        y: 0,
+        direction: Direction.None,
+      };
       throwAway = true;
     }
 
-    if (xPosition > window.innerWidth - 80) {
+    if (xPosition > this.pageWidth - 80) {
       this.dropRight(this.activeCard);
-      this.activeCardPosition = { x: 300, y: 0, direction: Direction.None };
+      this.activeCardPosition = {
+        x: this.pageWidth / 2 + 100,
+        y: 0,
+        direction: Direction.None,
+      };
       throwAway = true;
     }
 
