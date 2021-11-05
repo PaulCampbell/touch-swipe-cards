@@ -76,14 +76,6 @@ class TouchSwipeCard extends LitElement {
       box-shadow: 2px 4px 5px 0px rgba(0, 0, 0, 0.23);
     }
 
-    .animate-drop {
-      left: 0px;
-      top: 0px;
-      transform: rotate(0deg);
-      transition: 0.1s ease-in-out;
-      border: solid 1px #dedede;
-    }
-
     .zone-active {
       opacity: 0.5 !important;
     }
@@ -126,8 +118,8 @@ class TouchSwipeCard extends LitElement {
         ${this.card
           ? html`<div
               id="card"
-              class="${this.dragActive ? 'item active' : 'item animate-drop'}"
-              @mousedown="${this._handleTouchStart}"
+              class="${this.dragActive ? 'item active' : 'item'}"
+              @mousedown="${this._handleMouseStart}"
               @mouseup="${this._handleMouseDrop}"
               @mousemove="${this._handleMouseMove}"
               @touchmove="${this._handleTouchMove}"
@@ -163,6 +155,13 @@ class TouchSwipeCard extends LitElement {
     const touch = e.targetTouches[0];
     await new Promise((resolve) => setTimeout(resolve, 1));
     this._moveCard(touch.clientX, touch.clientY);
+  }
+
+  private async _handleMouseStart(e: MouseEvent) {
+    e.preventDefault();
+    this.dragActive = true;
+    await new Promise((resolve) => setTimeout(resolve, 1));
+    this._moveCard(e.clientX, e.clientY);
   }
 
   private _moveCard(x: number, y: number) {
