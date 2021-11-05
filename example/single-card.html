@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script type="module" src="../output/card.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <style>
+      body {
+        font-family: 'Open Sans', sans-serif;
+        font-size: 1.2em;
+        padding-left: 0.5em;
+      }
+      h1 {
+        font-size: 1em;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      window.onload = function() {
+        const catsList = []
+        const dogsList = []
+
+        function dropLeft(item) {
+          console.log(`left: ${item}`)
+        }
+
+        function dropRight(item) {
+          console.log(`right: ${item}`)
+        }
+
+        const dragCard = document.getElementsByTagName('touch-swipe-card')[0]
+        dragCard.card = "card 1"
+        dragCard.dropLeft = dropLeft
+        dragCard.dropRight = dropRight
+      };
+      
+
+    </script>
+    <h1>Single card</h1>
+    <touch-swipe-card>
+      <div slot="item">
+        <img width="150" slot="item" src="images/cat1.jpg" />
+      </div>
+    </touch-swipe-card>  
+  </body>
+</html>
