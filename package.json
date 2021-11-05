@@ -13,7 +13,7 @@
     "serve": "static-server",
     "prettier-format": "prettier --config .prettierrc 'src/**/*.ts' --write",
     "prettier-watch": "onchange 'src/**/*.ts' -- prettier --write {{changed}}",
-     "lint": "eslint . --ext .ts"
+    "lint": "eslint . --ext .ts"
   },
   "author": "",
   "license": "ISC",

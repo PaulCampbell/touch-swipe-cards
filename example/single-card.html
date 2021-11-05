@@ -7,7 +7,7 @@
       body {
         font-family: 'Open Sans', sans-serif;
         font-size: 1.2em;
-        padding-left: 0.5em;
+        margin:0;
       }
       h1 {
         font-size: 1em;
@@ -18,17 +18,12 @@
   <body>
     <script>
       window.onload = function() {
-        const catsList = []
-        const dogsList = []
-
         function dropLeft(item) {
           console.log(`left: ${item}`)
         }
-
         function dropRight(item) {
           console.log(`right: ${item}`)
         }
-
         const dragCard = document.getElementsByTagName('touch-swipe-card')[0]
         dragCard.dropLeft = dropLeft
         dragCard.dropRight = dropRight

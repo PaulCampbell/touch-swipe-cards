@@ -85,8 +85,6 @@ class TouchSwipeCard extends LitElement {
       border: solid 1px #dedede;
       min-width: 50px;
       min-height: 50px;
-      font-size: 100px;
-      color: white;
     }
     .item h1 {
       color: black;
@@ -104,16 +102,32 @@ class TouchSwipeCard extends LitElement {
     }
 
     .zone-active {
-      opacity: 0.5 !important;
+      opacity: 1 !important;
+    }
+    ]
+    .drop-zone-container {
+      position: relative;
+      width: 100%;
+    }
+    #drop-zones {
+      height: 100%;
+      position: absolute;
+      width: 100%;
+      margin: 0;
+      padding: 0;
     }
     #drop-zones li {
+      text-align: center;
       height: 100%;
       display: block;
       width: 50px;
       position: absolute;
       top: 0;
-      z-index: -1;
+      z-index: 0;
       opacity: 0;
+      margin: 0;
+      padding: 0;
+      min-height: 200px;
     }
 
     .left-drop-zone {
@@ -122,31 +136,32 @@ class TouchSwipeCard extends LitElement {
     }
     .right-drop-zone {
       background-color: green;
-      position: absolute;
       right: 0px;
     }
   `;
 
   render() {
     return html`
-      <ul id="drop-zones">
-        ${this.optionValues
-          ? html`<li
-                class=${this.leftDropActive
-                  ? 'left-drop-zone zone-active'
-                  : 'left-drop-zone'}
-              >
-                ${this.optionValues[0]}
-              </li>
-              <li
-                class=${this.rightDropActive
-                  ? 'right-drop-zone zone-active'
-                  : 'right-drop-zone'}
-              >
-                ${this.optionValues[1]}
-              </li>`
-          : ''}
-      </ul>
+      <div class="drop-zone-container">
+        <ul id="drop-zones">
+          ${this.optionValues
+            ? html`<li
+                  class=${this.leftDropActive
+                    ? 'left-drop-zone zone-active'
+                    : 'left-drop-zone'}
+                >
+                  ${this.optionValues[0]}
+                </li>
+                <li
+                  class=${this.rightDropActive
+                    ? 'right-drop-zone zone-active'
+                    : 'right-drop-zone'}
+                >
+                  ${this.optionValues[1]}
+                </li>`
+            : ''}
+        </ul>
+      </div>
       <div id="card-container">
         ${this.card
           ? html`<div
