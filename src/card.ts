@@ -16,15 +16,42 @@ class TouchSwipeCard extends LitElement {
   @property({ type: Function })
   dropRight: (card: String) => void;
 
-  @property({ type: String })
-  _card: string;
+  @property({ type: Element })
+  card: Element;
 
-  set card(value) {
-    this._card = value;
-  }
+  @property({ type: Array })
+  optionValues: Array<String>;
 
-  get card() {
-    return this._card;
+  connectedCallback() {
+    super.connectedCallback();
+    const items = [...this.children].filter(
+      (el) => el.getAttribute('slot') === 'item',
+    );
+    if (items.length != 1) {
+      throw new Error(
+        `touch-swipe-card Must have one "item" slot. Found ${items.length}`,
+      );
+    }
+    this.card = [...this.children].find(
+      (el) => el.getAttribute('slot') === 'item',
+    );
+    const options = [...this.children].filter(
+      (el) => el.getAttribute('slot') === 'options',
+    );
+    if (options.length != 1) {
+      throw new Error(
+        `touch-swipe-card Must have 1 "options" slot. Found ${items.length}`,
+      );
+    }
+    const optionValues = [...options[0].children]
+      .filter((el) => el.type === 'radio')
+      .map((r) => r.value);
+    if (optionValues.length != 2) {
+      throw new Error(
+        `touch-swipe-card "options" slot must have 2 radio buttons with "value" atrtibutes. Found ${optionValues.length}`,
+      );
+    }
+    this.optionValues = optionValues;
   }
 
   @property()
@@ -103,16 +130,22 @@ class TouchSwipeCard extends LitElement {
   render() {
     return html`
       <ul id="drop-zones">
-        <li
-          class=${this.leftDropActive
-            ? 'left-drop-zone zone-active'
-            : 'left-drop-zone'}
-        ></li>
-        <li
-          class=${this.rightDropActive
-            ? 'right-drop-zone zone-active'
-            : 'right-drop-zone'}
-        ></li>
+        ${this.optionValues
+          ? html`<li
+                class=${this.leftDropActive
+                  ? 'left-drop-zone zone-active'
+                  : 'left-drop-zone'}
+              >
+                ${this.optionValues[0]}
+              </li>
+              <li
+                class=${this.rightDropActive
+                  ? 'right-drop-zone zone-active'
+                  : 'right-drop-zone'}
+              >
+                ${this.optionValues[1]}
+              </li>`
+          : ''}
       </ul>
       <div id="card-container">
         ${this.card
@@ -125,7 +158,7 @@ class TouchSwipeCard extends LitElement {
               @touchmove="${this._handleTouchMove}"
               @touchstart="${this._handleTouchStart}"
               @touchend="${this._handleTouchEnd}"
-              style="${this._getCardPositionStyle(this.card)}"
+              style="${this._getCardPositionStyle()}"
             >
               <slot name="item"></slot>
             </div>`
@@ -134,7 +167,7 @@ class TouchSwipeCard extends LitElement {
     `;
   }
 
-  private _getCardPositionStyle(item: string) {
+  private _getCardPositionStyle() {
     let rotation = 0;
     const rotationAmount = 2;
     if (this.activeCardPosition.direction === Direction.Left)
@@ -225,7 +258,7 @@ class TouchSwipeCard extends LitElement {
   private async _dropCard(xPosition: number) {
     let throwAway = false;
     if (xPosition < 80) {
-      this.dropLeft(this.card);
+      this.dropLeft(this.card.getAttribute('id'));
       this.activeCardPosition = {
         x: -(this.pageWidth / 2) - 100,
         y: 0,
@@ -235,7 +268,7 @@ class TouchSwipeCard extends LitElement {
     }
 
     if (xPosition > this.pageWidth - 80) {
-      this.dropRight(this.card);
+      this.dropRight(this.card.getAttribute('id'));
       this.activeCardPosition = {
         x: this.pageWidth / 2 + 100,
         y: 0,
@@ -245,7 +278,7 @@ class TouchSwipeCard extends LitElement {
     }
 
     if (throwAway) {
-      this._card = null;
+      this.card = null;
     }
 
     this.dragActive = false;
